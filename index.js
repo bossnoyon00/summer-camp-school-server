@@ -152,7 +152,30 @@ async function run() {
             res.send(result)
         })
 
-       
+        app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+
+            if (req.decoded.email !== email) {
+                return res.send({ admin: false })
+            }
+            const user = await usersCollection.findOne(query);
+            const result = { instructor: user?.role === 'instructor' }
+            res.send(result)
+        })
+
+        app.get('/instructors', async (req, res) => {
+            const query = { role: "instructor" };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/class', async (req, res) => {
+            const newClass = req.body;
+            console.log(newClass)
+            const result = await classCollection.insertOne(newClass);
+            res.send(result);
+        })
 
 
         app.get('/class', async (req, res) => {
