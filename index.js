@@ -199,7 +199,43 @@ async function run() {
 
         })
 
-       
+        app.put('/addClasses/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const feedback = req.body.feedback; // Assuming the new feedback value is provided in the request body
+
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $push: { feedback: feedback } // Push the new feedback value to the "availableSeats" array field
+            };
+
+            const result = await classCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+
+        app.get('/instructorMyClass', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            console.log(req.query);
+            if (!email) {
+                res.send([]);
+            }
+
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ error: true, message: 'forbidden access' })
+            }
+            const query = { instructorEmail: email }
+            const result = await classCollection.find(query).toArray();
+            res.send(result);
+        })
+
+
+        app.post('/enroll', async (req, res) => {
+            const enrollClass = req.body;
+            console.log(enrollClass);
+            const result = await enrollCollection.insertOne(enrollClass);
+            res.send(result);
+        })
 
 
         app.get('/enroll', verifyJWT, async (req, res) => {
