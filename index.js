@@ -61,26 +61,7 @@ async function run() {
 
 
 
-        //jwt
-        app.post('/jwt', (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
-
-            res.send({ token })
-        })
-
-
-
-        const instructorVerify = async (req, res, next) => {
-            const email = req.decoded.email;
-            const query = { email: email }
-            const user = await usersCollection.findOne(query);
-            if (user?.role !== 'instructor') {
-                return res.status(403).send({ error: true, message: 'forbidden message' });
-            }
-            next();
-        }
-
+      
 
         const adminVerify = async (req, res, next) => {
             const email = req.decoded.email;
@@ -92,7 +73,7 @@ async function run() {
             next();
         }
 
-        app.get('/users',  async (req, res) => {
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             console.log(result)
             res.send(result)
@@ -104,7 +85,7 @@ async function run() {
             const query = { email: user.email }
             const existingUser = await usersCollection.findOne(query)
             if (existingUser) {
-                return res.send({ message: 'user already exist' })
+                return res.send({ message: 'user already exist', existingUser })
             }
             const result = await usersCollection.insertOne(user);
             res.send(result);
@@ -139,7 +120,7 @@ async function run() {
             res.send(result)
 
         })
-        
+
         app.get('/users/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
@@ -152,7 +133,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/users/instructor/:email', verifyJWT,  async (req, res) => {
+        app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
 
@@ -164,7 +145,11 @@ async function run() {
             res.send(result)
         })
 
-
+        app.get('/instructors', async (req, res) => {
+            const query = { role: "instructor" };
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
+        })
 
         app.post('/class', async (req, res) => {
             const newClass = req.body;
@@ -180,7 +165,7 @@ async function run() {
         })
 
 
-        app.patch('/addClasses/:id', verifyJWT,  async (req, res) => {
+        app.patch('/addClasses/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const status = req.query.status;
             // console.log(id)
@@ -279,40 +264,6 @@ async function run() {
                 clientSecret: paymentIntent.client_secret,
             });
         });
-
-
-        // app.post('/payments', verifyJWT, async (req, res) => {
-        //     const payment = req.body;
-        //     console.log(payment)
-        //     const insertResult = await paymentCollection.insertOne(payment);
-
-        //     const selectedQuery = { _id: new ObjectId(payment.selectedClassId) }
-        //     const enrolledQuery = { _id: new ObjectId(payment.enrolledClassId) }
-        //     const enrolledClass = await classCollection.findOne(enrolledQuery);
-        //     console.log(enrollCollection);
-        //     // insert enrolled class to enrolled collection 
-        //     const newEnrolledClass = {
-        //         classId: payment.enrolledClassId,
-        //         userEmail: payment.email,
-        //         className: payment.enrolledClassName,
-        //         classImage: payment.enrolledClassImage,
-        //         status: 'paid'
-        //     }
-        //     // console.log(newEnrolledClass)
-        //     const insertEnrolled = await studentPaySuccessCollection.insertOne(newEnrolledClass);
-        //     // update data of class info after enrolled
-        //     const updateDoc = {
-        //         $set: {
-        //             enrolled: parseInt(enrolledClass.enrolled + 1),
-        //             availableSeats: parseInt(enrolledClass.availableSeats - 1)
-        //         },
-        //     };
-        //     const result = await classCollection.updateOne(enrolledQuery, updateDoc);
-        //     // after all done delete the class from selected collection
-        //     const deleteResult = await enrollCollection.deleteOne(selectedQuery);
-        //     res.send(insertResult);
-        // })
-
 
         app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
