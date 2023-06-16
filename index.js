@@ -238,7 +238,7 @@ async function run() {
         })
 
 
-        app.get('/enroll',verifyJWT, async (req, res) => {
+        app.get('/enroll', verifyJWT, async (req, res) => {
             const email = req.query.email;
             if (!email) {
                 res.send([]);
@@ -346,7 +346,23 @@ async function run() {
         });
 
 
-       
+        app.get('/studentsPaymentsHistory', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+
+            if (!email) {
+                res.send([]);
+            }
+
+            const decodedEmail = req.decoded.email;
+            console.log(decodedEmail)
+            if (email !== decodedEmail) {
+                return res.status(403).send({ error: true, message: 'forbidden access' })
+            }
+
+            const query = { email: email };
+            const paymentHistory = await paymentCollection.find(query).sort({ date: -1 }).toArray();
+            res.send(paymentHistory);
+        });
 
 
         //All toy get
