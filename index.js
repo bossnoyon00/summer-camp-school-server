@@ -261,7 +261,29 @@ async function run() {
         })
 
 
-       
+        app.get('/enroll/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await enrollCollection.findOne(query);
+            res.send(result);
+        })
+
+
+        // create payment intent
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const { classPrice } = req.body;
+            const amount = parseInt(classPrice * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
         app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
             console.log(payment);
