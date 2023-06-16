@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
-require('dotenv').config();
 const cors = require('cors');
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
@@ -184,7 +184,7 @@ async function run() {
         })
 
 
-        app.patch('/addClasses/:id', verifyJWT, async (req, res) => {
+        app.patch('/addClasses/:id', async (req, res) => {
             const id = req.params.id;
             const status = req.query.status;
             // console.log(id)
@@ -199,7 +199,7 @@ async function run() {
 
         })
 
-        app.put('/addClasses/:id', verifyJWT, async (req, res) => {
+        app.put('/addClasses/:id', async (req, res) => {
             const id = req.params.id;
             const feedback = req.body.feedback; // Assuming the new feedback value is provided in the request body
 
@@ -213,32 +213,10 @@ async function run() {
         })
 
 
-        app.get('/instructorMyClass', verifyJWT, async (req, res) => {
-            const email = req.query.email;
-            console.log(req.query);
-            if (!email) {
-                res.send([]);
-            }
-
-            const decodedEmail = req.decoded.email;
-            if (email !== decodedEmail) {
-                return res.status(403).send({ error: true, message: 'forbidden access' })
-            }
-            const query = { instructorEmail: email }
-            const result = await classCollection.find(query).toArray();
-            res.send(result);
-        })
+      
 
 
-        app.post('/enroll', async (req, res) => {
-            const enrollClass = req.body;
-            console.log(enrollClass);
-            const result = await enrollCollection.insertOne(enrollClass);
-            res.send(result);
-        })
-
-
-        app.get('/enroll', verifyJWT, async (req, res) => {
+        app.get('/enroll',verifyJWT, async (req, res) => {
             const email = req.query.email;
             if (!email) {
                 res.send([]);
